@@ -16,10 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url, include
-from rest_framework.routers import DefaultRouter
-from api import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    url(r'/o', include(router.urls))
+    url(r'o', include('mainApp.urls'))
 ]
