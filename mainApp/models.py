@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from uuid import uuid4
+from re import sub
 
 class Client(models.Model):
     name = models.CharField(max_length = 50,null=False)
@@ -8,7 +10,7 @@ class Client(models.Model):
     client_type = models.CharField(max_length = 50,null=False)
     
 class AuthToken(models.Model):
-    token = models.CharField(max_length = 255,null=False)
+    token = models.CharField(max_length = 255,null=False, unique = True)
     expires = models.IntegerField(default = 200)
     added = models.DateTimeField(auto_now_add = True)
     user = models.OneToOneField(
@@ -18,7 +20,7 @@ class AuthToken(models.Model):
         null = False,
         blank = False,
     )
-    Client = models.ForeignKey(
+    client = models.ForeignKey(
         Client,
         on_delete=models.CASCADE,
         verbose_name = 'User',
@@ -26,3 +28,10 @@ class AuthToken(models.Model):
         blank = False,
     )
     revoked = models.BooleanField(default = False)
+    
+    def save(self, *args, **kwargs):
+        token = sub('-','',str(uuid4())) + sub('-','',str(uuid4())) + sub('-','',str(uuid4())) + sub('-','',str(uuid4()))
+        while token in AuthToken.objects.filter(token = token).exists()
+            token = sub('-','',str(uuid4())) + sub('-','',str(uuid4())) + sub('-','',str(uuid4())) + sub('-','',str(uuid4()))
+        self.token = token
+        super(AuthToken, self).save(*args, **kwargs)
