@@ -30,8 +30,8 @@ class AuthToken(models.Model):
     revoked = models.BooleanField(default = False)
     
     def save(self, *args, **kwargs):
-        token = sub('-','',str(uuid4())) + sub('-','',str(uuid4())) + sub('-','',str(uuid4())) + sub('-','',str(uuid4()))
+        token = sub('-','',str(uuid4())) 
         while token in AuthToken.objects.filter(token = token).exists()
-            token = sub('-','',str(uuid4())) + sub('-','',str(uuid4())) + sub('-','',str(uuid4())) + sub('-','',str(uuid4()))
+            token = sub('-','',str(uuid4()))
         self.token = token
         super(AuthToken, self).save(*args, **kwargs)
