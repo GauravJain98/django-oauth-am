@@ -7,5 +7,6 @@ from django.contrib.auth.views import login,logout
 
 
 urlpatterns = [
-    url(r'^$', views.index,name='index'),
+    url(r'^token/$', views.token,name='token'),
+    url(r'^revoke/$', views.revoke,name='revoke'),
 ]
