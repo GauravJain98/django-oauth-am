@@ -1,6 +1,7 @@
 from django.shortcuts import render
-from django.http import JsonResponse
+from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from .models import *
 
 @api_view(['POST'])
 def token(request):
@@ -21,14 +22,17 @@ def token(request):
         if client.exists():
             user = authenticate(username=data['username'], password=data['password'])
             if user:
-                AuthToken(client = client,user = user)
-                AuthToken.save()
+                token = AuthToken(client = client,user = user)
+                token.save()
+                return Response({
+                    'token':token.token,
+                    'expires':token.expires,
+                    'user':data['username']
+                })
         else:
             err = 'invalid client'
-    if err:
-        return Response({'error/s':err})
-    else:
-
+    return Response({'error/s':err})
+ 
 
 @api_view(['POST'])
 def revoke(request):
@@ -46,11 +50,9 @@ def revoke(request):
         client = Client.objects.filter(client_id = data['client_id'],client_secret = data['client_secret'])
         if client.exists():
             token = AuthToken.objects.filter(token = data['token'])
-            if token and not token.first().revoked:
+            if token.exists() and not token.first().revoked:
                 token.revoked = True
                 return Response({'token':token.token,'revoked':True})
         else:
             err = 'invalid client'
-    if err:
         return Response({'error/s':err})
-    else:

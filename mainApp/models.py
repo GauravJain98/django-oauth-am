@@ -31,7 +31,7 @@ class AuthToken(models.Model):
     
     def save(self, *args, **kwargs):
         token = sub('-','',str(uuid4())) 
-        while token in AuthToken.objects.filter(token = token).exists()
+        while token in AuthToken.objects.filter(token = token).exists():
             token = sub('-','',str(uuid4()))
         self.token = token
         super(AuthToken, self).save(*args, **kwargs)
