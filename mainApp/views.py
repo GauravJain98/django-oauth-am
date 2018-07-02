@@ -32,4 +32,25 @@ def token(request):
 
 @api_view(['POST'])
 def revoke(request):
-    return Response()
+    data = request.data
+    err = {}
+    if 'client_id' not in data:
+        err['client_id'] = 'required'
+    if 'client_secret' not in data:
+        err['client_secret'] = 'required'
+    if 'token' not in data:
+        err['token'] = 'required'
+    if err:
+        return Response({'error/s':err})
+    else:
+        client = Client.objects.filter(client_id = data['client_id'],client_secret = data['client_secret'])
+        if client.exists():
+            token = AuthToken.objects.filter(token = data['token'])
+            if token and not token.first().revoked:
+                token.revoked = True
+                return Response({'token':token.token,'revoked':True})
+        else:
+            err = 'invalid client'
+    if err:
+        return Response({'error/s':err})
+    else:
