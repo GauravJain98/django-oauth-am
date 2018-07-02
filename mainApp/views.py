@@ -23,7 +23,7 @@ def token(request):
         if client.exists():
             user = authenticate(username=data['username'], password=data['password'])
             if user:
-                token = AuthToken(client = client,user = user)
+                token = AuthToken(client = list(client)[0],user = user)
                 token.save()
                 return Response({
                     'token':token.token,
@@ -54,8 +54,12 @@ def revoke(request):
         if client.exists():
             token = AuthToken.objects.filter(token = data['token'])
             if token.exists() and not token.first().revoked:
+                token = list(token)[0]
                 token.revoked = True
+                token.save()
                 return Response({'token':token.token,'revoked':True})
+            else:
+                err = 'already revoked'
         else:
             err = 'invalid client'
         return Response({'error/s':err})
