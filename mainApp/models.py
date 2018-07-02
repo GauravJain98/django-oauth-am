@@ -10,7 +10,8 @@ class Client(models.Model):
     client_type = models.CharField(max_length = 50,null=False)
     
 class AuthToken(models.Model):
-    token = models.CharField(max_length = 255,null=False, unique = True)
+    token = models.CharField(max_length = 32,null=False, unique = True)
+    refresh = models.CharField(max_length = 32,null=False, unique = True)
     expires = models.IntegerField(default = 200)
     added = models.DateTimeField(auto_now_add = True)
     user = models.ForeignKey(
@@ -37,4 +38,8 @@ class AuthToken(models.Model):
             while AuthToken.objects.filter(token = token).exists():
                 token = sub('-','',str(uuid4()))
             self.token = token
+            refresh = sub('-','',str(uuid4()))
+            while AuthToken.objects.filter(refresh = refresh).exists():
+                token = sub('-','',str(uuid4()))
+            self.refresh = refresh
             super(AuthToken, self).save(*args, **kwargs)

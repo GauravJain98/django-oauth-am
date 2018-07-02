@@ -12,24 +12,27 @@ def token(request):
         err['client_id'] = 'required'
     if 'client_secret' not in data:
         err['client_secret'] = 'required'
-    if 'username' not in data:
-        err['username'] = 'required'
-    if 'password' not in data:
-        err['password'] = 'required'
+    if data['grant_type'] == 'password':
+        if 'username' not in data:
+            err['username'] = 'required'
+        if 'password' not in data:
+            err['password'] = 'required'
     if err:
         return Response({'error/s':err})
     else:
         client = Client.objects.filter(client_id = data['client_id'],client_secret = data['client_secret'])
         if client.exists():
-            user = authenticate(username=data['username'], password=data['password'])
-            if user:
-                token = AuthToken(client = list(client)[0],user = user)
-                token.save()
-                return Response({
-                    'token':token.token,
-                    'expires':token.expires,
-                    'user':data['username']
-                })
+            if data['grant_type'] == 'password':
+                user = authenticate(username=data['username'], password=data['password'])
+                if user:
+                    token = AuthToken(client = list(client)[0],user = user)
+                    token.save()
+                    return Response({
+                        'token':token.token,
+                        'refresh_token':token.refresh,
+                        'expires':token.expires,
+                        'user':data['username']
+                    })
             else:
                 err = 'invalid user'
         else:
