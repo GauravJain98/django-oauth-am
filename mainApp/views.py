@@ -30,6 +30,8 @@ def token(request):
                     'expires':token.expires,
                     'user':data['username']
                 })
+            else:
+                err = 'invalid user'
         else:
             err = 'invalid client'
     return Response({'error/s':err})
