@@ -17,6 +17,11 @@ def token(request):
             err['username'] = 'required'
         if 'password' not in data:
             err['password'] = 'required'
+    elif data['grant_type'] == 'refesh_token':
+        if 'refresh_token' not in data:
+            err['refresh_token'] = 'required'
+    else:
+        return Reponse({'error':'unsupported grant type'})
     if err:
         return Response({'error/s':err})
     else:
@@ -27,14 +32,21 @@ def token(request):
                 if user:
                     token = AuthToken(client = list(client)[0],user = user)
                     token.save()
-                    return Response({
-                        'token':token.token,
-                        'refresh_token':token.refresh,
-                        'expires':token.expires,
-                        'user':data['username']
-                    })
+            elif data['grant_type'] == 'refesh_token':                
+                token = AuthToken.objects.filter(refresh_token = data['refresh_token'])
+                if token.exists() and not token.first().revoked:
+                    token = list(token)[0]
+                    token.refesh
+                else:
+                    err = 'invalid token'
             else:
-                err = 'invalid user'
+                return Reponse({'error':'unsupported grant type'})
+            return Response({
+                'token':token.token,
+                'refresh_token':token.refresh,
+                'expires':token.expires,
+                'user':data['username']
+            })
         else:
             err = 'invalid client'
     return Response({'error/s':err})
