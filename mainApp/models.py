@@ -9,9 +9,10 @@ class Client(models.Model):
     client_secret = models.CharField(max_length = 255,null=False)
     client_type = models.CharField(max_length = 50,null=False)
     
+
 class AuthToken(models.Model):
     token = models.CharField(max_length = 32,null=False, unique = True)
-    refresh_token_token = models.CharField(max_length = 32,null=False, unique = True)
+    refresh_token = models.CharField(max_length = 32,null=False, unique = True)
     expires = models.IntegerField(default = 200)
     added = models.DateTimeField(auto_now_add = True)
     user = models.ForeignKey(
@@ -29,17 +30,6 @@ class AuthToken(models.Model):
         blank = False,
     )
     revoked = models.BooleanField(default = False)
-    
-    def refresh(self, *args, **kwargs):
-            token = sub('-','',str(uuid4()))
-            while AuthToken.objects.filter(token = token).exists():
-                token = sub('-','',str(uuid4()))
-            self.token = token
-            refresh_token = sub('-','',str(uuid4()))
-            while AuthToken.objects.filter(refresh_token = refresh_token).exists():
-                token = sub('-','',str(uuid4()))
-            self.refresh_token = refresh_token
-            super(AuthToken, self).save(*args, **kwargs)
     
     def save(self, *args, **kwargs):
         if self.token:

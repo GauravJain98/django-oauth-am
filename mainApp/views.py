@@ -4,6 +4,17 @@ from rest_framework.decorators import api_view
 from .models import *
 from django.contrib.auth import authenticate, login
 
+def refresh(obj):
+    token = sub('-','',str(uuid4()))
+    while AuthToken.objects.filter(token = token).exists():
+        token = sub('-','',str(uuid4()))
+    obj.token = token
+    refresh_token = sub('-','',str(uuid4()))
+    while AuthToken.objects.filter(refresh_token = refresh_token).exists():
+        token = sub('-','',str(uuid4()))
+    obj.refresh_token = refresh_token
+    obj.save()
+
 @api_view(['POST'])
 def token(request):
     data = request.data
@@ -32,21 +43,29 @@ def token(request):
                 if user:
                     token = AuthToken(client = list(client)[0],user = user)
                     token.save()
-            elif data['grant_type'] == 'refesh_token':                
-                token = AuthToken.objects.filter(refresh_token = data['refresh_token'])
+                    return Response({
+                        'token':token.token,
+                        'refresh_token':token.refresh_token,
+                        'expires':token.expires,
+                        'user':data['username']
+                    })
+                else:
+                    return Response({'error':'Invalid Credentials'})
+            elif data['grant_type'] == 'refesh_token':
+                token = AuthToken.objects.select_related('user').filter(refresh_token = data['refresh_token'])
                 if token.exists() and not token.first().revoked:
                     token = list(token)[0]
-                    token.refesh
+                    refresh(token)
+                    return Response({
+                        'token':token.token,
+                        'refresh_token':token.refresh_token,
+                        'expires':token.expires,
+                        'user':token.user.username
+                    })
                 else:
                     err = 'invalid token'
             else:
                 return Reponse({'error':'unsupported grant type'})
-            return Response({
-                'token':token.token,
-                'refresh_token':token.refresh,
-                'expires':token.expires,
-                'user':data['username']
-            })
         else:
             err = 'invalid client'
     return Response({'error/s':err})
